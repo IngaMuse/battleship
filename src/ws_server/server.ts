@@ -1,6 +1,6 @@
 import { WebSocket, WebSocketServer } from 'ws';
-import { WsMessage, WsMessageTypes } from 'types/types.ts';
-import { sendMessage } from 'utils/helper.ts';
+import { WsMessage, WsMessageTypes } from 'types/types';
+import { reg } from 'controllers/user';
 
 export const wsServer = (port: number): void => {
   const server = new WebSocketServer({ port });
@@ -20,9 +20,7 @@ export const wsServer = (port: number): void => {
 
       switch (type) {
         case 'reg':
-          console.log(123)
-          // const responseRegData = reg(index, data);
-          // sendMessage(WsMessageTypes.Reg, responseRegData, ws);
+        reg(index, data, ws);
           break;
         case 'create_room':
           // const responseCreateRoomData = createRoom(index);
@@ -53,4 +51,16 @@ export const wsServer = (port: number): void => {
   const unknownCommandDetected = (type: string) =>
     console.log(`Unknown command type: ${type}`);
   
+  process.on("exit", (code) => {
+    console.log("Process beforeExit event with code: ", code);
+    console.log("Closing connections...");
+    closeConnections();
+  });
+  const closeConnections = () =>
+    server.clients.forEach((ws) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close(1001, "server closed connection");
+        console.log("Connection closed");
+      }
+    })
 };

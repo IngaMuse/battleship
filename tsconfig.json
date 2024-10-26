@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2016",
-    "lib": ["ESNext"],
-    "module": "NodeNext",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "commonjs",
     "baseUrl": "./src",
     "resolveJsonModule": true,
     "allowJs": true,
@@ -15,7 +15,6 @@
     "strict": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true
     },
     "include": ["src/**/*"],
     "exclude": [ "node_modules", "dist"]

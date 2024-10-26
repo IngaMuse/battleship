@@ -34,3 +34,8 @@ export type Room = {
   roomId: number;
   roomUsers: User[];
 };
+
+export type Winner = {
+  name: string;
+  wins: number;
+};
