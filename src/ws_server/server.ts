@@ -1,9 +1,9 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { RequestAttackData, WsMessage, WsMessageTypes } from "types/types";
-import { reg, updateWinners } from "controllers/user";
+import { reg, updateWinners, updateWinnersTable } from "controllers/user";
 import { sendMessage } from "utils/helper";
 import { addUserToRoom, createRoom, deleteGameRooms, updateRoom } from "controllers/room";
-import { addShips, attack, createGame, getCurrentPlayer, getTurnInfo, randomAttack, startGame } from "controllers/game";
+import { addShips, attack, createGame, finish, getCurrentPlayer, getTurnInfo, isFinish, randomAttack, startGame } from "controllers/game";
 
 export const wsServer = (port: number): void => {
   const server = new WebSocketServer({ port });
@@ -118,7 +118,7 @@ export const wsServer = (port: number): void => {
           }
           break;
         case "attack":
-          JSON.parse(data) as RequestAttackData;
+          const { gameId } = JSON.parse(data) as RequestAttackData;
           if (getCurrentPlayer() === index) {
             const attackFeedback = attack(data);
             if (attackFeedback) {
@@ -133,8 +133,24 @@ export const wsServer = (port: number): void => {
                 });
             }
           }
+          if (isFinish(index)) {
+            updateWinnersTable(index);
+            const { players, data } = finish(index, gameId);
+            players
+              .map((player) => socketArray[player.indexPlayer])
+              .filter((socket) => socket.OPEN)
+              .forEach((socket) => {
+                sendMessage(WsMessageTypes.Finish, data, socket);
+                sendMessage(
+                  WsMessageTypes.UpdateWinners,
+                  updateWinners(),
+                  socket
+                );
+              });
+          }
           break;
         case "randomAttack":
+          const randomAttackData = JSON.parse(data) as RequestAttackData;
           const attackFeedback = randomAttack(index, data);
           if (attackFeedback) {
             attackFeedback.players
@@ -145,6 +161,24 @@ export const wsServer = (port: number): void => {
                   sendMessage(WsMessageTypes.Attack, data, socket);
                   sendMessage(WsMessageTypes.Turn, attackFeedback.turn, socket);
                 });
+              });
+          }
+          if (isFinish(index)) {
+            updateWinnersTable(index);
+            const { players, data } = finish(
+              index,
+              randomAttackData.gameId
+            );
+            players
+              .map((player) => socketArray[player.indexPlayer])
+              .filter((socket) => socket.OPEN)
+              .forEach((socket) => {
+                sendMessage(WsMessageTypes.Finish, data, socket);
+                sendMessage(
+                  WsMessageTypes.UpdateRoom,
+                  updateWinners(),
+                  socket
+                );
               });
           }
           break;

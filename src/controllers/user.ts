@@ -26,3 +26,13 @@ export const reg = (index: number, messageData: string, ws: WebSocket ) => {
 export const updateWinners = (): string => {
   return JSON.stringify(winners);
 }
+
+export const  updateWinnersTable = (index: number): void => {
+  const { name } = users[index];
+  const winnerId = winners.findIndex((winner) => winner.name === name);
+  if (winnerId > -1) {
+    winners[winnerId].wins += 1;
+  } else {
+    winners.push({ name, wins: 1 });
+  }
+}

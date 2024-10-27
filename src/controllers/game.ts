@@ -234,3 +234,16 @@ const getRandomPosition = (playerId: number): Position => {
     .find((cell) => cell.position.x === x && cell.position.y === y);
   return isExist ? getRandomPosition(playerId) : { x, y };
 }
+
+export const isFinish = (index: number): boolean => {
+  const enemyId = players.findIndex((player) => player.indexPlayer !== index);
+  return players[enemyId].remained <= 0
+}
+
+export const finish = (index: number, gameId: number) => {
+  const gamePlayer = players.filter((player) => player.gameId === gameId) as Player[];
+  return {
+    players: gamePlayer,
+    data: JSON.stringify({ winPlayer: index }),
+  };
+}
