@@ -1,8 +1,7 @@
 import { Room, User } from "types/types";
 import { users } from "./user";
 
-
-const rooms: Room[] = [];
+export let rooms: Room[] = [];
 
 const create = (): Room => {
   let roomId = 0;
@@ -21,17 +20,18 @@ export const createRoom = (index: number) => {
 
 export const addUserToRoom = (index: number, indexRoom: number): Room => {
   const currentUser = users.find((user) => user.index === index);
-  // rooms.forEach((room) => {
-  //   room.roomUsers = room.roomUsers.filter(
-  //     (user) => user.index !== currentUser?.index,
-  //   );
-  // });
   
   if (currentUser && !isUserAlreadyInRoom(currentUser, rooms[indexRoom])) {
     rooms[indexRoom].roomUsers.push(currentUser);
     console.log(`Player ${index} added to room ${indexRoom}`);
   };
+  if (rooms[indexRoom].roomUsers.length === 2) {
+  }
   return rooms[indexRoom];
+}
+
+export const deleteGameRooms = (indexRoom:number) => {
+  rooms = rooms.filter((room) => room.roomId !== indexRoom);
 }
 
 export const updateRoom = (): string => {

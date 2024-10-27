@@ -43,3 +43,13 @@ export type Winner = {
 export type RequestAddUserToRoomData = {
   indexRoom: number;
 };
+
+export type Game = {
+  idGame: number;
+  idPlayer: number;
+};
+
+export type ResponseCreateGameData = {
+  idGame: number;
+  idPlayer: number;
+};

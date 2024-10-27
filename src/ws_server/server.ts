@@ -2,7 +2,7 @@ import { WebSocket, WebSocketServer } from "ws";
 import { WsMessage, WsMessageTypes } from "types/types";
 import { reg, updateWinners } from "controllers/user";
 import { sendMessage } from "utils/helper";
-import { addUserToRoom, createRoom, updateRoom } from "controllers/room";
+import { addUserToRoom, createRoom, deleteGameRooms, updateRoom } from "controllers/room";
 import { createGame } from "controllers/game";
 
 export const wsServer = (port: number): void => {
@@ -58,6 +58,15 @@ export const wsServer = (port: number): void => {
           break;
         case "add_user_to_room":
           const { roomId, roomUsers } = addUserToRoom(index, JSON.parse(data).indexRoom);
+          server.clients.forEach((socket) => {
+            if (socket.OPEN) {
+              sendMessage(
+                WsMessageTypes.UpdateRoom,
+                updateRoom(),
+                socket
+              );
+            }
+          });
           if (roomUsers.length === 2) {
             roomUsers
               .map((user) => ({
@@ -72,6 +81,7 @@ export const wsServer = (port: number): void => {
                   socket
                 );
               });
+            deleteGameRooms(roomId);
           }
           server.clients.forEach((socket) => {
             if (socket.OPEN) {
