@@ -1,9 +1,9 @@
 import { WebSocket, WebSocketServer } from "ws";
-import { WsMessage, WsMessageTypes } from "types/types";
+import { RequestAttackData, WsMessage, WsMessageTypes } from "types/types";
 import { reg, updateWinners } from "controllers/user";
 import { sendMessage } from "utils/helper";
 import { addUserToRoom, createRoom, deleteGameRooms, updateRoom } from "controllers/room";
-import { addShips, createGame, getTurn, startGame } from "controllers/game";
+import { addShips, attack, createGame, getCurrentPlayer, getTurnInfo, startGame } from "controllers/game";
 
 export const wsServer = (port: number): void => {
   const server = new WebSocketServer({ port });
@@ -111,13 +111,28 @@ export const wsServer = (port: number): void => {
                 );
                 sendMessage(
                   WsMessageTypes.Turn,
-                  getTurn(gameId),
+                  getTurnInfo(),
                   socket
                 );
               });
           }
           break;
         case "attack":
+          JSON.parse(data) as RequestAttackData;
+          if (getCurrentPlayer() === index) {
+            const attackFeedback = attack(data);
+            if (attackFeedback) {
+              attackFeedback.players
+                .map((player) => socketArray[player.indexPlayer])
+                .filter((socket) => socket.OPEN)
+                .forEach((socket) => {
+                  attackFeedback.dataArray.forEach((data) => {
+                    sendMessage(WsMessageTypes.Attack, data, socket);
+                    sendMessage(WsMessageTypes.Turn, attackFeedback.turn, socket);
+                  });
+                });
+            }
+          }
           break;
         case "randomAttack":
           break;

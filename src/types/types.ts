@@ -70,6 +70,8 @@ export type Player = {
   gameId: number;
   indexPlayer: number;
   ships: Ship[];
+  field: Cell[];
+  remained: number;
 };
 
 export type RequestAddShipsData = {
@@ -80,4 +82,30 @@ export type RequestAddShipsData = {
 
 export type ResponseTurnData = {
   currentPlayer: number;
+};
+
+export type RequestAttackData = {
+  gameId: number;
+  x: number;
+  y: number;
+  indexPlayer: number;
+};
+
+export type ResponseAttackData = {
+  position: Position;
+  currentPlayer: number;
+  status: 'miss' | 'killed' | 'shot';
+};
+
+export type ResponseAttack = {
+  players: Player[];
+  turn: string;
+  dataArray: string[];
+};
+
+export type Cell = {
+  position: Position;
+  linked: Position[];
+  isEmpty: boolean;
+  isOpen: boolean;
 };
