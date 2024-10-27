@@ -3,7 +3,7 @@ import { WsMessage, WsMessageTypes } from "types/types";
 import { reg, updateWinners } from "controllers/user";
 import { sendMessage } from "utils/helper";
 import { addUserToRoom, createRoom, deleteGameRooms, updateRoom } from "controllers/room";
-import { createGame } from "controllers/game";
+import { addShips, createGame, startGame } from "controllers/game";
 
 export const wsServer = (port: number): void => {
   const server = new WebSocketServer({ port });
@@ -94,6 +94,23 @@ export const wsServer = (port: number): void => {
           });
           break;
         case "add_ships":
+          const players = addShips(index, data);
+          if (players.length === 2) {
+            const { gameId } = players[0];
+            players
+              .map((player) => ({
+                playerId: player.indexPlayer,
+                socket: socketArray[player.indexPlayer],
+              }))
+              .filter(({ socket }) => socket.OPEN)
+              .forEach(({ playerId, socket }) => {
+                sendMessage(
+                  WsMessageTypes.StartGame,
+                  startGame(gameId, playerId),
+                  socket
+                );
+              });
+          }
           break;
         case "attack":
           break;
