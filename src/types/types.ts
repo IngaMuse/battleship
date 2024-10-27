@@ -77,3 +77,7 @@ export type RequestAddShipsData = {
   ships: Ship[];
   indexPlayer: number;
 };
+
+export type ResponseTurnData = {
+  currentPlayer: number;
+};

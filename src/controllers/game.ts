@@ -2,6 +2,7 @@ import { Game, Player, RequestAddShipsData, Ship } from "types/types";
 
 const games: Game[] = [];
 const players: Player[] = [];
+let currentPlayer: number;
 
 export const createGame = (idPlayer: number, idGame: number): string => {
   const existedGame = games.find((game) => game.idGame === idGame);
@@ -22,11 +23,21 @@ const addPlayer = (indexPlayer: number, ships: Ship[], gameId: number): Player[]
   return game ? addPlayer(index, ships, gameId) : [];
 }
 
-export const startGame = (gameId: number, playerId: number): string => {
+export const startGame = (playerId: number): string => {
   return JSON.stringify({
     currentPlayerIndex: playerId,
     ships: players.find((player) => player.indexPlayer === playerId),
   });
+}
+
+export const getTurn = (playerId: number): string => {
+  if(!currentPlayer){currentPlayer = playerId}
+  return JSON.stringify({ currentPlayer: currentPlayer });
+}
+
+const changeCurrentPlayer =() => {
+  currentPlayer = players.find(
+    (player) => player.indexPlayer !== currentPlayer)?.indexPlayer as number;
 }
 
 

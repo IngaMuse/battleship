@@ -3,7 +3,7 @@ import { WsMessage, WsMessageTypes } from "types/types";
 import { reg, updateWinners } from "controllers/user";
 import { sendMessage } from "utils/helper";
 import { addUserToRoom, createRoom, deleteGameRooms, updateRoom } from "controllers/room";
-import { addShips, createGame, startGame } from "controllers/game";
+import { addShips, createGame, getTurn, startGame } from "controllers/game";
 
 export const wsServer = (port: number): void => {
   const server = new WebSocketServer({ port });
@@ -106,7 +106,12 @@ export const wsServer = (port: number): void => {
               .forEach(({ playerId, socket }) => {
                 sendMessage(
                   WsMessageTypes.StartGame,
-                  startGame(gameId, playerId),
+                  startGame(playerId),
+                  socket
+                );
+                sendMessage(
+                  WsMessageTypes.Turn,
+                  getTurn(gameId),
                   socket
                 );
               });
