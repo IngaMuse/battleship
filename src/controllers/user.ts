@@ -1,8 +1,9 @@
 import { WebSocket } from 'ws';
 import { RequestRegData, User, Winner, WsMessageTypes } from 'types/types';
 import { sendMessage } from 'utils/helper';
-const users: User[] = [];
+export const users: User[] = [];
 const winners: Winner[] = [];
+
 export const reg = (index: number, messageData: string, ws: WebSocket ) => {
   const data = JSON.parse(messageData) as RequestRegData;
   const { name } = data;
@@ -20,4 +21,8 @@ export const reg = (index: number, messageData: string, ws: WebSocket ) => {
       errorText: `User ${name} is already exists`,
     });
   }
+}
+
+export const updateWinners = (): string => {
+  return JSON.stringify(winners);
 }

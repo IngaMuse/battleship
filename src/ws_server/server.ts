@@ -1,16 +1,19 @@
-import { WebSocket, WebSocketServer } from 'ws';
-import { WsMessage, WsMessageTypes } from 'types/types';
-import { reg } from 'controllers/user';
+import { WebSocket, WebSocketServer } from "ws";
+import { WsMessage, WsMessageTypes } from "types/types";
+import { reg, updateWinners } from "controllers/user";
+import { sendMessage } from "utils/helper";
+import { addUserToRoom, createRoom, updateRoom } from "controllers/room";
+import { createGame } from "controllers/game";
 
 export const wsServer = (port: number): void => {
   const server = new WebSocketServer({ port });
   const socketArray: WebSocket[] = [];
 
-  server.on('connection', (ws) => {
+  server.on("connection", (ws) => {
     console.log("Client connected");
     socketArray.push(ws);
 
-    ws.on('message', (messageData: string) => {
+    ws.on("message", (messageData: string) => {
       const index = socketArray.findIndex((socket) => socket === ws);
 
       const message = JSON.parse(messageData.toString()) as WsMessage;
@@ -19,30 +22,81 @@ export const wsServer = (port: number): void => {
       const { type, data } = message;
 
       switch (type) {
-        case 'reg':
-        reg(index, data, ws);
+        case "reg":
+          reg(index, data, ws);
+          server.clients.forEach((socket) => {
+            if (socket.OPEN) {
+              sendMessage(
+                WsMessageTypes.UpdateRoom,
+                updateRoom(),
+                socket
+              );
+              sendMessage(
+                WsMessageTypes.UpdateWinners,
+                updateWinners(),
+                socket
+              );
+            }
+          });
           break;
-        case 'create_room':
-          // const responseCreateRoomData = createRoom(index);
-          // sendMessage(WsMessageTypes.UpdateRoom, responseCreateRoomData, ws);
+        case "create_room":
+          createRoom(index);
+          server.clients.forEach((socket) => {
+            if (socket.OPEN) {
+              sendMessage(
+                WsMessageTypes.UpdateRoom,
+                updateRoom(),
+                socket
+              );
+              sendMessage(
+                WsMessageTypes.UpdateWinners,
+                updateWinners(),
+                socket
+              );
+            }
+          });
           break;
-        case 'add_user_to_room':
-          // const responseAddUserToRoomData = addUserToRoom(index, data);
+        case "add_user_to_room":
+          const { roomId, roomUsers } = addUserToRoom(index, JSON.parse(data).indexRoom);
+          if (roomUsers.length === 2) {
+            roomUsers
+              .map((user) => ({
+                userId: user.index,
+                socket: socketArray[user.index],
+              }))
+              .filter(({ socket }) => socket.OPEN)
+              .forEach(({ userId, socket }) => {
+                sendMessage(
+                  WsMessageTypes.CreateGame,
+                  createGame(userId, roomId),
+                  socket
+                );
+              });
+          }
+          server.clients.forEach((socket) => {
+            if (socket.OPEN) {
+              sendMessage(
+                WsMessageTypes.UpdateRoom,
+                updateRoom(),
+                socket
+              );
+            }
+          });
           break;
-        case 'add_ships':
+        case "add_ships":
           break;
-        case 'attack':
+        case "attack":
           break;
-        case 'randomAttack':
+        case "randomAttack":
           break;
-          case 'single_play':
+        case "single_play":
           break;
         default:
           unknownCommandDetected(type);
           break;
       }
     });
-    ws.on('error', (err) => {
+    ws.on("error", (err) => {
       const index = socketArray.findIndex((socket) => socket === ws);
       console.log(`socket id ${index} thrown Error: ${err}`);
       ws.close();
@@ -50,7 +104,7 @@ export const wsServer = (port: number): void => {
   });
   const unknownCommandDetected = (type: string) =>
     console.log(`Unknown command type: ${type}`);
-  
+
   process.on("exit", (code) => {
     console.log("Process beforeExit event with code: ", code);
     console.log("Closing connections...");
@@ -62,5 +116,5 @@ export const wsServer = (port: number): void => {
         ws.close(1001, "server closed connection");
         console.log("Connection closed");
       }
-    })
+    });
 };

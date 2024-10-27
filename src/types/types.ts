@@ -39,3 +39,7 @@ export type Winner = {
   name: string;
   wins: number;
 };
+
+export type RequestAddUserToRoomData = {
+  indexRoom: number;
+};
