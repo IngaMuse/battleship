@@ -41,3 +41,23 @@ export const updateRoom = (): string => {
 export const isUserAlreadyInRoom =(user: User, room: Room): boolean => {
   return !!room.roomUsers.find((roomUser) => roomUser === user);
 }
+
+export const  deleteUserFromAllRooms = (index: number) =>{
+  rooms.forEach(({ roomId, roomUsers }) => {
+    const userId = roomUsers.findIndex((user) => user.index === index);
+    if (userId > -1) {
+      if (roomUsers.length < 2) {
+        rooms = rooms.filter(
+          (roomToDelete) => roomToDelete.roomId !== roomId
+        );
+      } else {
+        roomUsers = roomUsers.filter(
+          (userToDelete) => userToDelete.index !== index
+        );
+      }
+    }
+  });
+}
+export const isUserInRoom = (index: number): boolean => {
+  return !!rooms.find((room) => room.roomUsers.find((roomUser) => roomUser.index === index));
+}

@@ -247,3 +247,19 @@ export const finish = (index: number, gameId: number) => {
     data: JSON.stringify({ winPlayer: index }),
   };
 }
+
+export const isPlayerInGame = (index: number): boolean => {
+  return !!players.find((player) => player.indexPlayer === index);
+}
+
+export const getGameIdByPlayerId = (playerId: number): number => {
+  const game = players.find((player) => player.indexPlayer === playerId)?.gameId;
+  return game as number;
+}
+
+export const getEnemyIdByPlayerId = (playerId: number): number => {
+  const gameId = getGameIdByPlayerId(playerId);
+  const gamePlayer = players.filter((player) => player.gameId === gameId) as Player[];
+  const enemy = gamePlayer.find((player) => player.indexPlayer !== playerId);
+  return enemy?.indexPlayer as number;
+}

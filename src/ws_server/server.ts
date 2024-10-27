@@ -2,8 +2,8 @@ import { WebSocket, WebSocketServer } from "ws";
 import { RequestAttackData, WsMessage, WsMessageTypes } from "types/types";
 import { reg, updateWinners, updateWinnersTable } from "controllers/user";
 import { sendMessage } from "utils/helper";
-import { addUserToRoom, createRoom, deleteGameRooms, updateRoom } from "controllers/room";
-import { addShips, attack, createGame, finish, getCurrentPlayer, getTurnInfo, isFinish, randomAttack, startGame } from "controllers/game";
+import { addUserToRoom, createRoom, deleteGameRooms, deleteUserFromAllRooms, isUserInRoom, updateRoom } from "controllers/room";
+import { addShips, attack, createGame, finish, getCurrentPlayer, getEnemyIdByPlayerId, getGameIdByPlayerId, getTurnInfo, isFinish, isPlayerInGame, randomAttack, startGame } from "controllers/game";
 
 export const wsServer = (port: number): void => {
   const server = new WebSocketServer({ port });
@@ -141,6 +141,10 @@ export const wsServer = (port: number): void => {
               .filter((socket) => socket.OPEN)
               .forEach((socket) => {
                 sendMessage(WsMessageTypes.Finish, data, socket);
+              })
+            socketArray
+              .filter((socket) => socket.OPEN)
+              .forEach((socket) => {
                 sendMessage(
                   WsMessageTypes.UpdateWinners,
                   updateWinners(),
@@ -174,6 +178,10 @@ export const wsServer = (port: number): void => {
               .filter((socket) => socket.OPEN)
               .forEach((socket) => {
                 sendMessage(WsMessageTypes.Finish, data, socket);
+              })
+            socketArray
+              .filter((socket) => socket.OPEN)
+              .forEach((socket) => {
                 sendMessage(
                   WsMessageTypes.UpdateRoom,
                   updateWinners(),
@@ -194,10 +202,46 @@ export const wsServer = (port: number): void => {
       console.log(`socket id ${index} thrown Error: ${err}`);
       ws.close();
     });
+    ws.on('close', () => {
+      const index = socketArray.findIndex((socket) => socket === ws);
+      if (isPlayerInGame(index)) {
+        const gameId = getGameIdByPlayerId(index);
+        const enemyId = getEnemyIdByPlayerId(index);
+        updateWinnersTable(enemyId);
+        const { players, data } = finish(enemyId, gameId);
+        players
+          .map((player) => socketArray[player.indexPlayer])
+          .filter((socket) => socket.OPEN)
+          .forEach((socket) => {
+            sendMessage(WsMessageTypes.Finish, data, socket);
+          });
+        socketArray
+          .filter((socket) => socket.OPEN)
+          .forEach((socket) => {
+            sendMessage(
+              WsMessageTypes.UpdateWinners,
+              updateWinners(),
+              socket
+            );
+          });
+      }
+      if (isUserInRoom(index)) {
+        deleteUserFromAllRooms(index);
+        server.clients.forEach((socket) => {
+          if (socket.OPEN) {
+            sendMessage(
+              WsMessageTypes.UpdateRoom,
+              updateRoom(),
+              socket
+            );
+          }
+        });
+      }
+    });
   });
+
   const unknownCommandDetected = (type: string) =>
     console.log(`Unknown command type: ${type}`);
-
   process.on("exit", (code) => {
     console.log("Process beforeExit event with code: ", code);
     console.log("Closing connections...");
