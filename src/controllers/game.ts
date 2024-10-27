@@ -204,3 +204,33 @@ const getCellAroundShipPosition = (positions: Position[]): Position[] => {
   });
   return result;
 }
+
+export const randomAttack = ( index: number, messageData: string): ResponseAttack | undefined => {
+  const { indexPlayer } = JSON.parse( messageData) as RequestAttackData;
+  const position = getRandomPosition(indexPlayer) as Position;
+  const res = attackOnCells(indexPlayer, position) as ResponseAttackData[];
+  const isHit = res.find(
+    (data) => data.status === 'shot' || data.status === 'killed'
+  );
+  if (res.length > 0) {
+    if (!isHit) changeCurrentPlayer();
+    const turn = { currentPlayer: currentPlayer };
+    return {
+      players,
+      turn: JSON.stringify(turn),
+      dataArray: res?.map((data) => JSON.stringify(data)),
+    };
+  }
+}
+
+const getRandomPosition = (playerId: number): Position => {
+  const enemyId = players.findIndex(
+    (player) => player.indexPlayer !== playerId
+  );
+  const x = Math.floor(Math.random() * 10);
+  const y = Math.floor(Math.random() * 10);
+  const isExist = players[enemyId].field
+    .filter((cell) => cell.isOpen)
+    .find((cell) => cell.position.x === x && cell.position.y === y);
+  return isExist ? getRandomPosition(playerId) : { x, y };
+}
