@@ -1,0 +1,68 @@
+import { Room, User } from "types/types";
+import { users } from "./user";
+import { initBot } from "./bot";
+
+export let rooms: Room[] = [];
+
+const create = (): Room => {
+  let roomId = 0;
+  if (rooms.length > 0) {
+    roomId = rooms.length;
+  }
+  rooms[roomId] = { roomId, roomUsers: [] };
+  return rooms[roomId];
+}
+
+export const createRoom = (index: number) : number => {
+  const { roomId } = create();
+  addUserToRoom(index, roomId);
+  console.log(`Player ${index} added to new room with id ${roomId}`)
+  return roomId;
+}
+
+export const addUserToRoom = (index: number, indexRoom: number): Room => {
+  const currentUser = users.find((user) => user.index === index);
+  
+  if (currentUser && !isUserAlreadyInRoom(currentUser, rooms[indexRoom])) {
+    rooms[indexRoom].roomUsers.push(currentUser);
+    console.log(`Player ${index} added to room ${indexRoom}`);
+  };
+  if (rooms[indexRoom].roomUsers.length === 2) {
+  }
+  return rooms[indexRoom];
+}
+
+export const deleteGameRooms = (indexRoom:number) => {
+  rooms = rooms.filter((room) => room.roomId !== indexRoom);
+}
+
+export const updateRoom = (): string => {
+  return JSON.stringify(rooms);
+}
+
+export const isUserAlreadyInRoom =(user: User, room: Room): boolean => {
+  return !!room.roomUsers.find((roomUser) => roomUser === user);
+}
+
+export const  deleteUserFromAllRooms = (index: number) =>{
+  rooms.forEach(({ roomId, roomUsers }) => {
+    const userId = roomUsers.findIndex((user) => user.index === index);
+    if (userId > -1) {
+      if (roomUsers.length < 2) {
+        rooms = rooms.filter(
+          (roomToDelete) => roomToDelete.roomId !== roomId
+        );
+      } else {
+        roomUsers = roomUsers.filter(
+          (userToDelete) => userToDelete.index !== index
+        );
+      }
+    }
+  });
+}
+export const isUserInRoom = (index: number): boolean => {
+  return !!rooms.find((room) => room.roomUsers.find((roomUser) => roomUser.index === index));
+}
+export const addBotToRoom = (roomId: number) => {
+  initBot(roomId);
+}
