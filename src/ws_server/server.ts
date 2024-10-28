@@ -4,6 +4,7 @@ import { reg, updateWinners, updateWinnersTable } from "controllers/user";
 import { sendMessage } from "utils/helper";
 import { addUserToRoom, createRoom, deleteGameRooms, deleteUserFromAllRooms, isUserInRoom, updateRoom } from "controllers/room";
 import { addShips, attack, createGame, finish, getCurrentPlayer, getEnemyIdByPlayerId, getGameIdByPlayerId, getTurnInfo, isFinish, isPlayerInGame, randomAttack, startGame } from "controllers/game";
+import { initBot } from "controllers/bot";
 
 export const wsServer = (port: number): void => {
   const server = new WebSocketServer({ port });
@@ -191,6 +192,8 @@ export const wsServer = (port: number): void => {
           }
           break;
         case "single_play":
+          const roomIndex = createRoom(index);
+          initBot(roomIndex);
           break;
         default:
           unknownCommandDetected(type);

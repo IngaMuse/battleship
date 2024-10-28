@@ -1,5 +1,6 @@
 import { Room, User } from "types/types";
 import { users } from "./user";
+import { initBot } from "./bot";
 
 export let rooms: Room[] = [];
 
@@ -12,10 +13,11 @@ const create = (): Room => {
   return rooms[roomId];
 }
 
-export const createRoom = (index: number) => {
+export const createRoom = (index: number) : number => {
   const { roomId } = create();
   addUserToRoom(index, roomId);
-  console.log(`Player ${index} added to new room with id ${roomId}`);
+  console.log(`Player ${index} added to new room with id ${roomId}`)
+  return roomId;
 }
 
 export const addUserToRoom = (index: number, indexRoom: number): Room => {
@@ -60,4 +62,7 @@ export const  deleteUserFromAllRooms = (index: number) =>{
 }
 export const isUserInRoom = (index: number): boolean => {
   return !!rooms.find((room) => room.roomUsers.find((roomUser) => roomUser.index === index));
+}
+export const addBotToRoom = (roomId: number) => {
+  initBot(roomId);
 }
